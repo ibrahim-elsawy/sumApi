@@ -9,12 +9,15 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using sumApi.Configuration;
+using sumApi.Data;
 
 namespace sumApi
 {
@@ -31,10 +34,16 @@ namespace sumApi
         public void ConfigureServices(IServiceCollection services)
         {
             services.Configure<JwtConfig>(Configuration.GetSection("JwtConfig"));
-            services.AddDbContextPool<ApiDbContext>( 
-                options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+            services.AddDbContext<ApiDbContext>( 
+                options => options.UseNpgsql(Configuration.GetConnectionString("DefaultConnection")));
+            // services.AddDbContextPool<ApiDbContext>( 
+            //     options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+		// 	services.AddIdentity<IdentityUser, IdentityRole<long>>().AddEntityFrameworkStores<ApiDbContext>()
+	    // .AddDefaultTokenProviders();
+            services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
+                        .AddEntityFrameworkStores<ApiDbContext>();
 
-            var key = Encoding.ASCII.GetBytes(Configuration["JwtConfig:Secret"]);
+			var key = Encoding.ASCII.GetBytes(Configuration["JwtConfig:Secret"]);
             var tokenValidationParams = new TokenValidationParameters {
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new SymmetricSecurityKey(key),
@@ -56,8 +65,6 @@ namespace sumApi
                 jwt.TokenValidationParameters = tokenValidationParams;
             });
 
-			services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
-				    .AddEntityFrameworkStores<ApiDbContext>();
 
 
 			services.AddCors(options => {
