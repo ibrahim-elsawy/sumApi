@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -67,20 +68,9 @@ namespace sumApi
 			services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
 				    .AddEntityFrameworkStores<ApiDbContext>();
 
-			services.AddControllers(options =>
-			{
-				options.CacheProfiles.Add("1minutes", new CacheProfile
-				{
-					Duration = 1 * 60,
-					Location = ResponseCacheLocation.Any,
-			    // VaryByHeader = "Accept-Language"
-		    });
-			}
-			);
-			services.AddResponseCaching(options =>
-			{
-				options.MaximumBodySize = 1024;
-			});
+			services.AddControllers().AddJsonOptions(x => x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve);
+			
+			
 			services.AddSwaggerGen(c =>
 			{
 				c.SwaggerDoc("v1", new OpenApiInfo { Title = "sumApi", Version = "v1" });
@@ -88,7 +78,7 @@ namespace sumApi
 			
 			services.AddCors(options =>
 			{
-				options.AddPolicy("Open", builder => builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
+				options.AddPolicy(name:"Open", builder => builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
 			});
 		}
 
@@ -97,7 +87,6 @@ namespace sumApi
 		{
 			if (env.IsDevelopment())
 			{
-				System.Console.WriteLine("this dev .............");
 				app.UseDeveloperExceptionPage();
 				app.UseSwagger();
 				app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "sumApi v1"));

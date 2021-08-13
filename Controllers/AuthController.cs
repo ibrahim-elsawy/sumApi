@@ -20,6 +20,7 @@ namespace sumApi.Controllers
 {
 	[ApiController]
 	[Route("[controller]")]
+	[Produces("application/json")]
 	public class AuthController : ControllerBase
 	{
 		private readonly UserManager<IdentityUser> _userManager;
@@ -38,10 +39,15 @@ namespace sumApi.Controllers
 			_tokenValidationParams = tokenValidationParameters;
 			_apiDbContext = apiDbContext;
 		}
-
+		[HttpGet]
+		[Route("test")]
+		public async Task<IActionResult> Test()
+		{
+			return Ok("7amra ya ota");
+		}
 		[HttpPost]
 		[Route("Register")]
-		public async Task<IActionResult> Register([FromBody] UserRegistrationDto user)
+		public async Task<IActionResult> Register( UserRegistrationDto user)
 		{
 			if (ModelState.IsValid)
 			{
@@ -63,8 +69,9 @@ namespace sumApi.Controllers
 				var isCreated = await _userManager.CreateAsync(newUser, user.Password);
 				if (isCreated.Succeeded)
 				{
-					var jwtToken = GenerateJwtToken(newUser);
-
+					var jwtToken = await GenerateJwtToken(newUser);
+					Console.WriteLine($"register function line 68 {jwtToken}");
+					
 					return Ok(jwtToken);
 				}
 				else
@@ -119,7 +126,8 @@ namespace sumApi.Controllers
 				}
 
 				var jwtToken = await GenerateJwtToken(existingUser);
-
+				Console.WriteLine($"{jwtToken}");
+				
 				return Ok(jwtToken);
 			}
 
@@ -199,13 +207,15 @@ namespace sumApi.Controllers
 
 			await _apiDbContext.RefreshToken.AddAsync(refreshToken);
 			await _apiDbContext.SaveChangesAsync();
-
-			return new AuthResult()
+			var x = new AuthResult()
 			{
 				Token = jwtToken,
 				Success = true,
 				RefreshToken = refreshToken.Token
 			};
+			Console.WriteLine($"this generate funvtion line 210   {x}");
+
+			return x;
 		}
 
 		private async Task<AuthResult> VerifyAndGenerateToken(TokenRequest tokenRequest)
