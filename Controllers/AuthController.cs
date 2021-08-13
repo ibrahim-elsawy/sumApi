@@ -39,12 +39,7 @@ namespace sumApi.Controllers
 			_tokenValidationParams = tokenValidationParameters;
 			_apiDbContext = apiDbContext;
 		}
-		[HttpGet]
-		[Route("test")]
-		public async Task<IActionResult> Test()
-		{
-			return Ok("7amra ya ota");
-		}
+		
 		[HttpPost]
 		[Route("Register")]
 		public async Task<IActionResult> Register( UserRegistrationDto user)
